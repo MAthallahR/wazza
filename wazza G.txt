@@ -1,127 +1,110 @@
-using System;
-using System.Data;
-using System.Drawing;
-using System.Windows.Forms;
 using MySql.Data.MySqlClient;
-using oo;
 
-namespace ToDoList
+namespace usksksksk
 {
-    public partial class gate : Form
+    public partial class Form1 : Form
     {
-        // Deklarasi Variabel
-        string connectionString = "Server=localhost;Database=todolist;Uid=root;Pwd=;";
+        string connectionString = "Server=localhost;database=usknigga1;uid=root;pwd=;";
         MySqlConnection connection;
-        private bool _userHasTypedUsername = false;
-        private bool _userHasTypedPassword = false;
+        bool typeusn = false;
+        bool typepw = false;
 
-        // Konstruktor
-        public gate()
+        public Form1()
         {
             InitializeComponent();
             InitializeForm();
         }
 
-        // Inisialisasi Form
         private void InitializeForm()
         {
             connection = new MySqlConnection(connectionString);
-            lblUsernameWarn.Visible = false;
-            lblPasswordWarn.Visible = false;
-            textBox2.UseSystemPasswordChar = true;
+            lblWarnUsn.Visible = false;
+            lblWarnPw.Visible = false;
+            txtBoxPw.UseSystemPasswordChar = true;
         }
 
-        // ==================== EVENT HANDLERS ====================
-
-        // 1. Username Text Changed
-        private void textBox1_TextChanged(object sender, EventArgs e)
+        private void txtBoxUsn_TextChanged(object sender, EventArgs e)
         {
-            if (textBox1.Text.Length > 0)
-            {           
-                _userHasTypedUsername = true;
-                lblUsernameWarn.Visible = false;
-            }
-
-            if (_userHasTypedUsername && textBox1.Text.Length == 0)
-                lblUsernameWarn.Visible = true;
-        }
-
-        // 2. Password Text Changed
-        private void textBox2_TextChanged(object sender, EventArgs e)
-        {
-            if (textBox2.Text.Length > 0)
+            if (txtBoxUsn.Text.Length > 0)
             {
-                _userHasTypedPassword = true;
-                lblPasswordWarn.Visible = false;
+                typeusn = true;
+                lblWarnUsn.Visible = false;
             }
-
-            if (_userHasTypedPassword && textBox2.Text.Length == 0)
-                lblPasswordWarn.Visible = true;
+            if (typeusn && txtBoxUsn.Text.Length == 0)
+            {
+                lblWarnUsn.Visible = true;
+            }
         }
 
-        // 3. Show Password Checkbox
+        private void txtBoxPw_TextChanged(object sender, EventArgs e)
+        {
+            if (txtBoxPw.Text.Length > 0)
+            {
+                typepw = true;
+                lblWarnPw.Visible = false;
+            }
+            if (typepw && txtBoxPw.Text.Length == 0)
+            {
+                lblWarnPw.Visible = true;
+            }
+        }
+
         private void checkBoxPw_CheckedChanged(object sender, EventArgs e)
         {
-            textBox2.UseSystemPasswordChar = !checkBoxPw.Checked;
+            txtBoxPw.UseSystemPasswordChar = !checkBoxPw.Checked;
         }
 
-        // 4. Login Button
         private void btnLogin_Click(object sender, EventArgs e)
         {
-            string username = textBox1.Text.Trim();
-            string password = textBox2.Text.Trim();
+            string username = txtBoxUsn.Text.Trim();
+            string password = txtBoxPw.Text.Trim();
 
-            // Validasi Input
             if (string.IsNullOrEmpty(username))
             {
-                MessageBox.Show("Username harus di isi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                textBox1.Focus();
+                MessageBox.Show("Username harus dimasukkan!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                txtBoxUsn.Focus();
                 return;
             }
-
             if (string.IsNullOrEmpty(password))
             {
-                MessageBox.Show("Password harus di isi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                textBox2.Focus();
+                MessageBox.Show("Password harus dimasukkan!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                txtBoxUsn.Focus();
                 return;
             }
 
-            // Authentication
-            AuthenticateUser(username, password);
+            Auth(username,password);
         }
 
-        // ==================== DATABASE OPERATIONS ====================
-
-        private void AuthenticateUser(string username, string password)
+        private void Auth(string username, string password)
         {
             try
             {
                 connection.Open();
-                string query = "SELECT nama_lengkap FROM users WHERE username = @user AND password = @pass";
+                string query = "SELECT fullname FROM users WHERE username = @user and password = @pass";
                 MySqlCommand cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@user", username);
                 cmd.Parameters.AddWithValue("@pass", password);
                 object result = cmd.ExecuteScalar();
                 connection.Close();
 
-                if (result != null)
+                if(result != null)
                 {
-                    string namaLengkap = result.ToString();
-                    MessageBox.Show("Login Berhasil! Selamat Datang, " + namaLengkap);
+                    string fullname = result.ToString();
+                    MessageBox.Show("Selamat datang " + fullname + "!!");
 
-                    todoList mainForm = new todoList(namaLengkap);
-                    mainForm.Show();
-                    this.Hide(); // Sembunyikan form login
+                    Form2 list = new Form2(fullname);
+                    list.Show();
+                    this.Hide();
                 }
                 else
                 {
-                    MessageBox.Show("Username atau Password salah!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Username / Password salah!!", "Error!!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                MessageBox.Show(ex.Message);    
+                MessageBox.Show(ex.Message);
             }
         }
-    }   
+    }
 }
