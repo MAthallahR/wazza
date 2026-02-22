@@ -1,0 +1,19 @@
+G
+lblJudul anchor (top-left-right) , autoelip (true) , textalign (top center)
+lbl(usn,pw) anchor (top-left-right) , autoelip (true) , textalign (middle center)
+lblWarn anchor (top-left-right) , autoelip (true) , textalign (middle left)
+txtbox(usn,pw) anchor (top-left-right) , textalign (left)
+checkboxPw anchor (top-left-right) , autoelip (true) , textalign (middle left)
+buttonLogin anchor (bottom-left-right) , autoelip (false) , cursor (hand) , textalign (middle center)
+panelcenter anchor (top-left) , autoscroll (true) , dock (fill)
+
+L
+lblJudul anchor (top-left-right) , autoelip (true) , textalign (top center)
+lblUser anchor (top-left-right) , autoelip (true) , textalign (middle left)
+lbl(title,desc) anchor (top-left-right) , autoelip (true) , textalign (middle left)
+txtbox(title,desc,search) anchor (top-left-right) , textalign (left)
+datagrid anchor (top-bottom-left-right) , autosizecol (fill) , columnheaderheightsize (autosize)
+btn(edit,save,del) anchor (top-left-right) , autoelip (false) , cursor (hand) , textalign (middle center)
+panelcenter anchor (top-bottom-left-right)  
+paneltitle anchor (top-left) , dock (top)  
+panelbtn anchor (top-left) , dock (right)  
