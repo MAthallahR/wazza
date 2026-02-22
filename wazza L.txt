@@ -8,78 +8,66 @@ using ToDoList;
 
 namespace oo
 {
-    public partial class todoList : Form
+        public partial class Form2 : Form
     {
-        // Deklarasi Variabel
-        string connectionString = "Server=localhost;Database=todolist;Uid=root;Pwd=;";
+        string connectionString = "server=localhost;database=usknigga1;uid=root;pwd=;";
         MySqlConnection connection;
-        DataTable todoTable;
+        DataTable ListTable;
         int currentId = 0;
         bool isEditing = false;
 
-        // Konstruktor
-        public todoList(string namaLengkap)
+        public Form2(string fullname)
         {
             InitializeComponent();
-            InitializeComponents(namaLengkap);
+            InitializeForm(fullname);
         }
 
-        // Inisialisasi Komponen
-        private void InitializeComponents(string namaLengkap)
+        private void InitializeForm(string fullname)
         {
             connection = new MySqlConnection(connectionString);
-            lbluser.Text = "Halo, " + namaLengkap;
+            lblFn.Text = "halo ! " + fullname;
 
-            // Event Handlers
-            todoListView.CellContentClick += todoListView_CellContentClick;
-            todoListView.SelectionChanged += todoListView_SelectionChanged;
-            todoListView.CellFormatting += todoListView_CellFormatting;
+            GridView.SelectionChanged += GridView_SelectionChanged;
+            GridView.CellFormatting += GridView_CellFormatting;
+            GridView.CellContentClick += GridView_CellContentClick;
         }
 
-        // Form Load Event
-        private void todoList_Load(object sender, EventArgs e)
+        private void Form2_Load(object sender, EventArgs e)
         {
             LoadData();
-            SetButtonsVisibility(false);
+            ClearFields();
+            ButtonVisibility(false);
         }
 
-        // ==================== DATABASE OPERATIONS ====================
-
-        // 1. Load Data dari Database
         private void LoadData()
         {
             connection.Open();
-            string query = "SELECT id, Judul, Deskripsi, finished_at AS 'Selesai Pada' FROM todos ORDER BY created_at DESC";
+            string query = "SELECT id, title, description, finished_at FROM list ORDER BY created_at DESC";
             MySqlDataAdapter adapter = new MySqlDataAdapter(query, connection);
-            todoTable = new DataTable();
-            adapter.Fill(todoTable);
-            SetupDataGridView();
+            ListTable = new DataTable();
+            adapter.Fill(ListTable);
+            SetupData();
             connection.Close();
         }
 
-        // 2. Setup DataGridView
-        private void SetupDataGridView()
+        private void SetupData()
         {
-            todoListView.DataSource = null;
-            todoListView.Columns.Clear();
-            todoListView.AllowUserToAddRows = false;
+            GridView.DataSource = null;
+            GridView.Columns.Clear();
+            GridView.AllowUserToAddRows = false;
 
-            // Tambah Kolom Checkbox Status
-            DataGridViewCheckBoxColumn checkColumn = new DataGridViewCheckBoxColumn();
-            checkColumn.Name = "Status";
-            checkColumn.HeaderText = "Status";
-            checkColumn.ReadOnly = false;
-            todoListView.Columns.Add(checkColumn);
+            DataGridViewCheckBoxColumn checkbox = new DataGridViewCheckBoxColumn();
+            checkbox.Name = "Status";
+            checkbox.ReadOnly = false;
+            GridView.Columns.Add(checkbox);
 
-            // Set DataSource
-            todoListView.DataSource = todoTable;
+            GridView.DataSource = ListTable;
 
-            // Sembunyikan Kolom ID
-            if (todoListView.Columns["id"] != null)
-                todoListView.Columns["id"].Visible = false;
+            if (GridView.Columns["id"] != null)
+            {
+                GridView.Columns["id"].Visible = false;
+            }
         }
-
-        // 3. Execute Query Helper
         private void ExecuteQuery(string query, params MySqlParameter[] parameters)
         {
             connection.Open();
@@ -89,175 +77,154 @@ namespace oo
             connection.Close();
         }
 
-        // ==================== UI HELPER METHODS ====================
-
-        // 1. Visibilitas Tombol
-        private void SetButtonsVisibility(bool visible)
+        private void ButtonVisibility(bool visible)
         {
             btnEdit.Visible = visible;
             btnDelete.Visible = visible;
         }
 
-        // 2. Clear Input Fields
         private void ClearFields()
         {
-            txtboxJudul.Text = "";
-            txtboxDeskripsi.Text = "";
+            txtBoxTitle.Text = "";
+            txtBoxDesc.Text = "";
             isEditing = false;
             currentId = 0;
-            todoListView.ClearSelection();
+            GridView.ClearSelection();
         }
 
-        // ==================== DATA GRID VIEW EVENTS ====================
-
-        // 1. Selection Changed
-        private void todoListView_SelectionChanged(object sender, EventArgs e)
+        private void GridView_SelectionChanged(object? sender, EventArgs e)
         {
-            if (todoListView.CurrentCell != null && todoListView.CurrentCell.RowIndex >= 0)
-                SetButtonsVisibility(true);
-            else
-                SetButtonsVisibility(false);
-        }
-
-        // 2. Cell Formatting
-        private void todoListView_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
-        {
-            if (e.RowIndex >= 0 && e.RowIndex < todoListView.Rows.Count)
+            if (GridView.CurrentCell != null && GridView.CurrentCell.RowIndex >= 0)
             {
-                DataGridViewRow gridRow = todoListView.Rows[e.RowIndex];
+                ButtonVisibility(true);
+            }
+            else
+            {
+                ButtonVisibility(false);
+            }
+        }
+        private void GridView_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.RowIndex < GridView.Rows.Count)
+            {
+                DataGridViewRow gridRow = GridView.Rows[e.RowIndex];
                 DataRowView dataRow = gridRow.DataBoundItem as DataRowView;
 
                 if (dataRow != null)
                 {
-                    // Set Checkbox Status
-                    if (todoListView.Columns[e.ColumnIndex].Name == "Status")
+                    if (GridView.Columns[e.ColumnIndex].Name == "Status")
                     {
-                        bool isFinished = dataRow["Selesai Pada"] != DBNull.Value;
+                        bool isFinished = dataRow["finished_at"] != DBNull.Value;
                         e.Value = isFinished;
                     }
-
-                    // Set Warna Baris
-                    if (dataRow["Selesai Pada"] != DBNull.Value)
+                    if (dataRow["finished_at"] != DBNull.Value)
+                    {
                         gridRow.DefaultCellStyle.BackColor = Color.LightGreen;
+                    }
                     else
+                    {
                         gridRow.DefaultCellStyle.BackColor = Color.White;
+                    }
                 }
             }
         }
 
-        // 3. Cell Content Click (Checkbox)
-        private void todoListView_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private void GridView_CellContentClick(object? sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0 && todoListView.Columns[e.ColumnIndex].Name == "Status")
+            if (e.RowIndex >= 0 && GridView.Columns[e.ColumnIndex].Name == "Status")
             {
-                todoListView.CommitEdit(DataGridViewDataErrorContexts.Commit);
-                DataRowView row = (DataRowView)todoListView.Rows[e.RowIndex].DataBoundItem;
+                GridView.CommitEdit(DataGridViewDataErrorContexts.Commit);
+                DataRowView row = (DataRowView)GridView.Rows[e.RowIndex].DataBoundItem;
                 int id = Convert.ToInt32(row["id"]);
-                bool isChecked = (bool)todoListView.Rows[e.RowIndex].Cells["Status"].Value;
+                bool isChecked = (bool)GridView.Rows[e.RowIndex].Cells["Status"].Value;
 
                 if (isChecked)
                 {
-                    SoundPlayer audio = new SoundPlayer("C:\\Users\\g\\Documents\\belajar\\CODE\\c#\\ToDoList\\Fully\\oo\\bin\\Debug\\boom.wav");
+                    SoundPlayer audio = new SoundPlayer(@"C:\Users\g\source\repos\usksksksk\usksksksk\bin\Debug\boom.wav");
                     audio.Play();
                 }
 
-                string query = isChecked
-                    ? "UPDATE todos SET finished_at = NOW() WHERE id = @id"
-                    : "UPDATE todos SET finished_at = NULL WHERE id = @id";
+                string query = isChecked ? "UPDATE list SET finished_at = NOW() WHERE id = @id" : "UPDATE list SET finished_at = NULL WHERE id = @id";
 
                 ExecuteQuery(query, new MySqlParameter("@id", id));
                 LoadData();
             }
+
         }
 
-        // ==================== BUTTON EVENT HANDLERS ====================
-
-        // 1. Save Button (Insert/Update)
         private void btnSave_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtboxJudul.Text))
+            if (string.IsNullOrEmpty(txtBoxTitle.Text))
             {
-                MessageBox.Show("Silakan isi list terlebih dahulu!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtboxJudul.Focus(); 
+                MessageBox.Show("Title must be filled!!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                txtBoxTitle.Focus();
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(txtboxJudul.Text)) return;
-
-            string query = isEditing
-                ? "UPDATE todos SET Judul = @judul, Deskripsi = @deskripsi WHERE id = @id"
-                : "INSERT INTO todos (Judul, Deskripsi) VALUES (@judul, @deskripsi)";
+            string query = isEditing ? "UPDATE list SET title = @title , description = @desc WHERE id = @id" : "INSERT into list (title,description) VALUES (@title,@desc)";
 
             MySqlCommand cmd = new MySqlCommand(query, connection);
-            cmd.Parameters.AddWithValue("@judul", txtboxJudul.Text);
-            cmd.Parameters.AddWithValue("@deskripsi", txtboxDeskripsi.Text);
+            cmd.Parameters.AddWithValue("@title", txtBoxTitle.Text);
+            cmd.Parameters.AddWithValue("@desc", txtBoxDesc.Text);
             if (isEditing) cmd.Parameters.AddWithValue("@id", currentId);
 
             connection.Open();
             cmd.ExecuteNonQuery();
             connection.Close();
-
-            ClearFields();
             LoadData();
         }
 
-        // 2. Edit Button
         private void btnEdit_Click(object sender, EventArgs e)
         {
-            if (todoListView.CurrentRow != null)
+            if (GridView.CurrentRow != null)
             {
-                DataRowView rowView = todoListView.CurrentRow.DataBoundItem as DataRowView;
+                DataRowView rowView = GridView.CurrentRow.DataBoundItem as DataRowView;
                 if (rowView != null)
                 {
                     currentId = Convert.ToInt32(rowView["id"]);
-                    txtboxJudul.Text = rowView["Judul"].ToString();
-                    txtboxDeskripsi.Text = rowView["Deskripsi"].ToString();
+                    txtBoxTitle.Text = rowView["title"].ToString();
+                    txtBoxDesc.Text = rowView["description"].ToString();
                     isEditing = true;
                 }
             }
         }
 
-        // 3. Delete Button
         private void btnDelete_Click(object sender, EventArgs e)
         {
-            if (todoListView.CurrentRow != null)
+            if (GridView.CurrentRow != null)
             {
-                int rowIndex = todoListView.CurrentCell.RowIndex;
-                int id = Convert.ToInt32(todoTable.Rows[rowIndex]["id"]);
+                int rowindex = GridView.CurrentCell.RowIndex;
+                int id = Convert.ToInt32(ListTable.Rows[rowindex]["id"]);
 
-                DialogResult dialogResult = MessageBox.Show("Yakin ingin menghapus?", "Konfirmasi", MessageBoxButtons.YesNo);
-                if (dialogResult == DialogResult.Yes)
+                DialogResult dialogresult = MessageBox.Show("Sure want to delete?", "Confirm", MessageBoxButtons.YesNo);
+                if (dialogresult == DialogResult.Yes)
                 {
-                    string query = "DELETE FROM todos WHERE id = @id";
+                    string query = "DELETE FROM list where id = @id";
                     ExecuteQuery(query, new MySqlParameter("@id", id));
                     ClearFields();
                     LoadData();
                 }
             }
         }
-
-        // 4. Logout Button
-        private void btnLogout_Click(object sender, EventArgs e)
+        private void txtBoxSearch_TextChanged(object sender, EventArgs e)
         {
-            DialogResult result = MessageBox.Show("Apakah Anda yakin ingin logout?", "Konfirmasi Logout", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (result == DialogResult.Yes)
+            if (GridView != null)
             {
-                gate loginForm = new gate();
-                loginForm.Show();
-                this.Dispose();
+                string keyword = txtBoxSearch.Text.Replace("'", "''");
+                ListTable.DefaultView.RowFilter = string.Format("title like '%{0}%'", keyword);
+
+                ClearFields();
             }
         }
 
-        // ==================== SEARCH FUNCTIONALITY ====================
-
-        private void txtboxSearch_TextChanged(object sender, EventArgs e)
+        private void btnLogout_Click(object sender, EventArgs e)
         {
-            if (todoTable != null)
+            DialogResult dialogresult = MessageBox.Show("are you sure?", "confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dialogresult == DialogResult.Yes)
             {
-                string keyword = txtboxSearch.Text.Replace("'", "''");
-                todoTable.DefaultView.RowFilter = string.Format("Judul LIKE '%{0}%' OR Deskripsi LIKE '%{0}%'", keyword);
-
-                ClearFields();
+                Form1 gate = new Form1();
+                gate.Show();
+                this.Dispose();
             }
         }
     }
