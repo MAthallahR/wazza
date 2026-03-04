@@ -1,25 +1,36 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
+using System.Media;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using MySql.Data.MySqlClient;
-using System.Media;
-using ToDoList;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
-namespace oo
+namespace usksksksk
 {
-        public partial class Form2 : Form
+    public partial class Form2 : Form
     {
         string connectionString = "server=localhost;database=usknigga1;uid=root;pwd=;";
         MySqlConnection connection;
         DataTable ListTable;
+        string currentUsername = "";
+        string currentRole = "";
         int currentId = 0;
         bool isEditing = false;
 
-        public Form2(string fullname)
+        public Form2(string username, string fullname, string role)
         {
             InitializeComponent();
+            currentUsername = username;
+            currentRole = role;
             InitializeForm(fullname);
+            CheckRole();
         }
 
         private void InitializeForm(string fullname)
@@ -42,8 +53,11 @@ namespace oo
         private void LoadData()
         {
             connection.Open();
-            string query = "SELECT id, title, description, finished_at FROM list ORDER BY created_at DESC";
-            MySqlDataAdapter adapter = new MySqlDataAdapter(query, connection);
+            string query = "SELECT id, title, description, finished_at FROM list WHERE username = @username ORDER BY created_at DESC";
+            MySqlCommand cmd = new MySqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@username", currentUsername);
+
+            MySqlDataAdapter adapter = new MySqlDataAdapter(cmd);
             ListTable = new DataTable();
             adapter.Fill(ListTable);
             SetupData();
@@ -103,6 +117,19 @@ namespace oo
                 ButtonVisibility(false);
             }
         }
+
+        private void CheckRole()
+        {
+            if (currentRole == "admin")
+            {
+                btnUser.Visible = true; 
+            }
+            else
+            {
+                btnUser.Visible = false; 
+            }
+        }
+
         private void GridView_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex >= 0 && e.RowIndex < GridView.Rows.Count)
@@ -161,9 +188,12 @@ namespace oo
                 return;
             }
 
-            string query = isEditing ? "UPDATE list SET title = @title , description = @desc WHERE id = @id" : "INSERT into list (title,description) VALUES (@title,@desc)";
+            string query = isEditing
+                ? "UPDATE list SET title = @title , description = @desc WHERE id = @id AND username = @username"
+                : "INSERT into list (username, title, description) VALUES (@username, @title, @desc)";
 
             MySqlCommand cmd = new MySqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@username", currentUsername);
             cmd.Parameters.AddWithValue("@title", txtBoxTitle.Text);
             cmd.Parameters.AddWithValue("@desc", txtBoxDesc.Text);
             if (isEditing) cmd.Parameters.AddWithValue("@id", currentId);
@@ -171,6 +201,7 @@ namespace oo
             connection.Open();
             cmd.ExecuteNonQuery();
             connection.Close();
+            ClearFields();
             LoadData();
         }
 
