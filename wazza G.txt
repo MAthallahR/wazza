@@ -80,28 +80,31 @@ namespace usksksksk
             try
             {
                 connection.Open();
-                string query = "SELECT fullname FROM users WHERE username = @user and password = @pass";
+                string query = "SELECT fullname, role FROM users WHERE username = @user and password = @pass";
                 MySqlCommand cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@user", username);
                 cmd.Parameters.AddWithValue("@pass", password);
-                object result = cmd.ExecuteScalar();
-                connection.Close();
 
-                if(result != null)
+                using (MySqlDataReader reader = cmd.ExecuteReader())
                 {
-                    string fullname = result.ToString();
-                    MessageBox.Show("Selamat datang " + fullname + "!!");
+                    if (reader.Read())
+                    {
+                        string fullname = reader["fullname"].ToString();
+                        string role = reader["role"].ToString();
 
-                    Form2 list = new Form2(fullname);
-                    list.Show();
-                    this.Hide();
-                }
-                else
-                {
-                    MessageBox.Show("Username / Password salah!!", "Error!!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Selamat datang " + fullname + "!!");
+
+                        Form2 list = new Form2(username, fullname, role);
+                        list.Show();
+                        this.Hide();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Username / Password salah!!", "Error!!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
